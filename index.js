@@ -10,23 +10,25 @@
 const http = require('http');
 const url = require('url');
 const execSync = require('child_process').execSync;
-// const EventEmitter = require('events');
-
 const program = require('commander');
 
 const myConsole = require('./lib/myConsole');
 
-// const emitter = new EventEmitter();
-
-program
-  .version('1.0.0')
-  .option('-u, --test-url <url>', 'Url for test network accessibility')
-  .option('-t, --timeout <timeout>', 'Network considered to be inaccessible After receive no response for timeout milliseconds')
-  .option('-i, --test-interval <interval>', 'Test interval')
-  .parse(process.argv);
-
 const console = myConsole({ header: () => `[${new Date().toLocaleString()}]` });
 
+/**
+ * @callback onDisconnected
+ * @param {string} message Disconnected error message
+ */
+
+/**
+ * Test network accessibility and onDisconnected called when it's disconnected
+ *
+ * @param  {string} options.TEST_URL       Url to test for network accessibility
+ * @param  {number} options.TEST_INTERVAL  Test interval
+ * @param  {number} options.TIMEOUT        Network considered to be disconnected After receive no response for timeout milliseconds
+ * @param  {onDisconnected} options.onDisconnected Callback when network is disconnected
+ */
 function testNetworkAccessibility({ TEST_URL, TEST_INTERVAL = 30 * 1000, TIMEOUT = 2 * 1000, onDisconnected = console.log }) {
   const RETRY_INTERVAL = 5 * 1000;
   console.log(`Testing network accessibility by fetching ${TEST_URL} at every ${TEST_INTERVAL / 1000}s with timeout ${TIMEOUT / 1000}s`);
@@ -60,8 +62,13 @@ function testNetworkAccessibility({ TEST_URL, TEST_INTERVAL = 30 * 1000, TIMEOUT
   }
 }
 
-function reconnect(msg) {
-  console.error(`Error: ${msg}`);
+/**
+ * Reconnect to the netWork
+ *
+ * @param  {string} message Error message
+ */
+function reconnect(message) {
+  console.error(`Error: ${message}`);
   console.info('Start reconnecting');
 
   execSync('networksetup -setairportpower en0 off');
@@ -70,10 +77,24 @@ function reconnect(msg) {
   console.info('Network connected');
 }
 
-testNetworkAccessibility({
-  TEST_URL: program.testUrl || 'https://www.baidu.com',
-  TEST_INTERVAL: program.testInterval,
-  TIMEOUT: program.timeout,
+/**
+ * Entry function
+ */
+function main() {
+  program
+    .version('1.0.0')
+    .option('-u, --test-url <url>', 'Url for test network accessibility')
+    .option('-t, --timeout <timeout>', 'Network considered to be disconnected After receive no response for timeout milliseconds')
+    .option('-i, --test-interval <interval>', 'Test interval')
+    .parse(process.argv);
 
-  onDisconnected: reconnect,
-});
+  testNetworkAccessibility({
+    TEST_URL: program.testUrl || 'https://www.baidu.com',
+    TEST_INTERVAL: program.testInterval,
+    TIMEOUT: program.timeout,
+
+    onDisconnected: reconnect,
+  });
+}
+
+main();
