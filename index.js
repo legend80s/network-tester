@@ -52,7 +52,7 @@ function testNetworkAccessibility({ TEST_URL, TEST_INTERVAL = 30 * 1000, TIMEOUT
 
   function handler(error) {
     onDisconnected(error.message);
-    console.info(`The script will re-detect after ${RETRY_INTERVAL / 1000}s`);
+    console.info(`Re-test after ${RETRY_INTERVAL / 1000}s`);
 
     setTimeout(() => {
       testNetworkAccessibility({ TEST_URL, TEST_INTERVAL, TIMEOUT, onDisconnected });
